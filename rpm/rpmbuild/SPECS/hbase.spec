@@ -2,11 +2,11 @@
 %define version 1.0.3
 %define __jar_repack %{nil}
 
-Name:		%{name}
-Version:	%{version}
-Release:	1%{?dist}
-Summary:	HBase is the Hadoop database. Use it when you need random, realtime read/write access to your Big Data. This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware. 
-URL: https://archive.apache.org/dist/hbase/
+Name: %{name}
+Version: %{version}
+Release: 2%{?dist}
+Summary: HBase is the Hadoop database. Use it when you need random, realtime read/write access to your Big Data. This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware. 
+URL: http://hbase.apache.org/
 Group: Development/Libraries
 License: ASL 2.0
 Source0: %{name}-%{version}-bin.tar.gz
@@ -15,8 +15,10 @@ Source2: hbase-regionserver.init
 Source3: hbase-rest.init
 Source4: hbase-thrift.init
 BuildArch: noarch
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent
 Requires: coreutils, /usr/sbin/useradd, /sbin/chkconfig, /sbin/service
 Requires: hadoop-hdfs, zookeeper >= 3.3.1, bigtop-utils >= 0.7
+Requires(postun): /usr/sbin/userdel
 
 %description
 HBase is an open-source, distributed, column-oriented store modeled after Google' Bigtable: A Distributed Storage System for Structured Data by Chang et al. Just as Bigtable leverages the distributed data storage provided by the Google File System, HBase provides Bigtable-like capabilities on top of Hadoop. HBase includes:
@@ -83,8 +85,11 @@ The Apache HBase REST gateway
 %prep
 %setup -n %{name}-%{version}
 
+%pre
+/usr/bin/getent passwd %{name} || /usr/sbin/useradd -r -d /usr/lib/hbase -s /sbin/nologin -U %{name}
+
 %install
-%__mkdir -p $RPM_BUILD_ROOT/usr/lib/hbase $RPM_BUILD_ROOT/var/run/hbase $RPM_BUILD_ROOT/var/log/hbase $RPM_BUILD_ROOT/etc/rc.d/init.d
+%__mkdir -p $RPM_BUILD_ROOT/usr/lib/hbase $RPM_BUILD_ROOT/var/run/hbase $RPM_BUILD_ROOT/var/log/hbase $RPM_BUILD_ROOT/etc/hbase $RPM_BUILD_ROOT/etc/rc.d/init.d
 %__cp -rp lib $RPM_BUILD_ROOT/usr/lib/hbase/
 %__cp -rp conf $RPM_BUILD_ROOT/usr/lib/hbase/
 %__cp -rp docs $RPM_BUILD_ROOT/usr/lib/hbase/
@@ -96,10 +101,14 @@ The Apache HBase REST gateway
 %__install -m 0755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/hbase-rest
 %__install -m 0755 %SOURCE4 $RPM_BUILD_ROOT/etc/rc.d/init.d/hbase-thrift
 
+%postun
+/usr/sbin/userdel %{name}
+
 %files
 %dir /usr/lib/hbase
 %dir /var/log/hbase
 %dir /var/run/hbase
+%dir /etc/hbase
 /usr/lib/hbase/lib
 /usr/lib/hbase/bin
 /usr/lib/hbase/conf
@@ -122,6 +131,4 @@ The Apache HBase REST gateway
 
 %files thrift
 %attr(0755,root,root) /etc/rc.d/init.d/hbase-thrift
-
-#%changelog
 
