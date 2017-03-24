@@ -4,7 +4,7 @@
 
 Name: %{name}
 Version: %{version}
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: HBase is the Hadoop database. Use it when you need random, realtime read/write access to your Big Data. This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware. 
 URL: http://hbase.apache.org/
 Group: Development/Libraries
@@ -86,7 +86,7 @@ The Apache HBase REST gateway
 %setup -n %{name}-%{version}
 
 %pre
-/usr/bin/getent passwd %{name} || /usr/sbin/useradd -r -d /usr/lib/hbase -s /sbin/nologin -U %{name}
+/usr/bin/getent passwd %{name} > /dev/null 2>&1 || /usr/sbin/useradd -r -d /usr/lib/hbase -s /sbin/nologin -U %{name}
 
 %install
 %__mkdir -p $RPM_BUILD_ROOT/usr/lib/hbase $RPM_BUILD_ROOT/var/run/hbase $RPM_BUILD_ROOT/var/log/hbase $RPM_BUILD_ROOT/etc/hbase $RPM_BUILD_ROOT/etc/rc.d/init.d
@@ -101,14 +101,10 @@ The Apache HBase REST gateway
 %__install -m 0755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/hbase-rest
 %__install -m 0755 %SOURCE4 $RPM_BUILD_ROOT/etc/rc.d/init.d/hbase-thrift
 
-%postun
-/usr/sbin/userdel %{name}
-
 %files
-%dir /usr/lib/hbase
-%dir /var/log/hbase
-%dir /var/run/hbase
-%dir /etc/hbase
+%dir %attr(0755,hbase,hbase) /var/log/hbase
+%dir %attr(0755,hbase,hbase) /var/run/hbase
+%dir %attr(0755,hbase,hbase) /etc/hbase
 /usr/lib/hbase/lib
 /usr/lib/hbase/bin
 /usr/lib/hbase/conf
